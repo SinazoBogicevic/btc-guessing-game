@@ -87,23 +87,36 @@ export async function resolveGuess(
 ): Promise<"win" | "loss" | "no-active-guess"> {
   const user = await getOrCreateUser(userId);
 
-  if (!user.activeGuess || !user.priceAtGuess || !user.guessPlacedAt) {
+  if (
+    !user.activeGuess ||
+    user.priceAtGuess === null ||
+    user.guessPlacedAt === null
+  ) {
     return "no-active-guess";
   }
 
-  const elapsedSeconds =
-    (Date.now() - new Date(user.guessPlacedAt).getTime()) / 1000;
+  const guessTime = new Date(user.guessPlacedAt);
+  const now = new Date();
+  const secondsSinceGuess = (now.getTime() - guessTime.getTime()) / 1000;
 
-  if (elapsedSeconds < 60) {
-    throw new Error(`Too early to resolve: ${elapsedSeconds}s elapsed`);
+  if (secondsSinceGuess < 60) {
+    throw new Error("Too early to resolve guess: 60 seconds have not passed");
   }
 
-  const isCorrect =
-    (user.activeGuess === "up" && currentPrice > user.priceAtGuess) ||
-    (user.activeGuess === "down" && currentPrice < user.priceAtGuess);
+  if (currentPrice === user.priceAtGuess) {
+    throw new Error(
+      "Price has not changed since guess was made; cannot resolve yet"
+    );
+  }
 
-  const newScore = user.score + (isCorrect ? 1 : -1);
-  const result: "win" | "loss" = isCorrect ? "win" : "loss";
+  const guess = user.activeGuess;
+  let won = false;
+
+  if (guess === "up" && currentPrice > user.priceAtGuess) won = true;
+  if (guess === "down" && currentPrice < user.priceAtGuess) won = true;
+
+  const newScore = user.score + (won ? 1 : -1);
+  const result: "win" | "loss" = won ? "win" : "loss";
 
   await docClient.send(
     new UpdateCommand({
