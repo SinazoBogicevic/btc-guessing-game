@@ -22,14 +22,22 @@ Amplify.configure({
 
 export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getCurrentUser()
       .then((user) => {
         setUser(user);
+        setLoading(false);
       })
-      .catch(() => {
+      .catch(async () => {
+        try {
+          await signOut();
+        } catch (e) {
+          console.error("Error during sign out in initial auth check:", e);
+        }
         setUser(null);
+        setLoading(false);
       });
   }, []);
 
@@ -79,6 +87,7 @@ export function useAuth() {
 
   return {
     user,
+    loading,
     handleSignUp,
     handleSignIn,
     handleConfirmSignUp,

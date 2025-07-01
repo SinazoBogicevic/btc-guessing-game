@@ -7,17 +7,29 @@ import styles from "./page.module.css";
 
 export default function Home() {
   const [price, setPrice] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingPrice, setLoadingPrice] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
 
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
+  useEffect(() => {
+    if (!loading && user) {
+      setRedirecting(true);
+      setTimeout(() => {
+        router.replace("/dashboard");
+      }, 100);
+    }
+  }, [user, loading, router]);
+
   const handleStart = async () => {
+    if (loading) return; // Wait for auth to resolve
     if (user) {
-      console.log("clicked");
-      console.log(user);
-      router.push("/dashboard");
+      setRedirecting(true);
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 100);
     } else {
       router.push("/login");
     }
@@ -33,11 +45,11 @@ export default function Home() {
         const data = await res.json();
         setPrice(data.bitcoin.usd);
         setError(null);
-        setLoading(false);
+        setLoadingPrice(false);
       } catch (err) {
         console.error("Failed to fetch BTC price:", err);
         setError("Failed to load BTC price");
-        setLoading(false);
+        setLoadingPrice(false);
       }
     };
 
@@ -49,19 +61,30 @@ export default function Home() {
   return (
     <div className={styles.page}>
       <main className={styles.main}>
-        <h1>BTC Guessing Game</h1>
-
-        {error ? (
-          <p className={styles.error}>{error}</p>
+        {redirecting ? (
+          <div className={styles.redirecting}>
+            <div className={styles.redirectingRow}>
+              <span className={styles.spinner} />
+              <span>Redirecting to dashboard...</span>
+            </div>
+          </div>
         ) : (
-          <p>
-            {loading
-              ? "Loading BTC price..."
-              : `BTC/USD: $${price?.toFixed(2)}`}
-          </p>
-        )}
+          <>
+            <h1>BTC Guessing Game</h1>
 
-        <button onClick={handleStart}>Start Playing →</button>
+            {error ? (
+              <p className={styles.error}>{error}</p>
+            ) : (
+              <p>
+                {loadingPrice
+                  ? "Loading BTC price..."
+                  : `BTC/USD: $${price?.toFixed(2)}`}
+              </p>
+            )}
+
+            <button onClick={handleStart}>Start Playing →</button>
+          </>
+        )}
       </main>
     </div>
   );
