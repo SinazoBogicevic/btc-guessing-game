@@ -1,4 +1,3 @@
-// @ts-expect-error node-fetch v2 default import is not typed correctly in TS
 import fetch from "node-fetch";
 
 describe("GET /api/user", () => {
@@ -10,6 +9,5 @@ describe("GET /api/user", () => {
     console.log(data);
     expect(data.userId).toBe(userId);
     expect(typeof data.score).toBe("number");
-    // Add more assertions as needed
   });
 });
