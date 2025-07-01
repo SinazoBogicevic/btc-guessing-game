@@ -53,38 +53,13 @@ export default function LoginPage() {
   };
 
   return (
-    <main>
+    <main className={"main"}>
       {redirecting ? (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "1rem",
-            marginTop: "2rem",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <span
-              className="spinner"
-              style={{
-                width: "24px",
-                height: "24px",
-                border: "4px solid #ccc",
-                borderTop: "4px solid #333",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-                display: "inline-block",
-              }}
-            />
+        <div className={"redirecting"}>
+          <div className={"redirectingRow"}>
+            <span className={"spinner"} />
             <span>Redirecting to dashboard...</span>
           </div>
-          <style>{`
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          `}</style>
         </div>
       ) : (
         <>

@@ -17,7 +17,11 @@ export async function GET() {
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    const price = data?.bitcoin?.usd;
+    if (typeof price !== "number") {
+      throw new Error("Invalid price data from CoinGecko");
+    }
+    return NextResponse.json({ price });
   } catch (error) {
     console.error("Error fetching BTC price:", error);
     return NextResponse.json(

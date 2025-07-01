@@ -43,7 +43,7 @@ export default function Home() {
           throw new Error("Failed to fetch price");
         }
         const data = await res.json();
-        setPrice(data.bitcoin.usd);
+        setPrice(data.price);
         setError(null);
         setLoadingPrice(false);
       } catch (err) {
