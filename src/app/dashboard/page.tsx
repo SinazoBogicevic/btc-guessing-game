@@ -5,14 +5,28 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/Auth";
 import styles from "./dashboard.module.css";
 
+function timeAgo(dateString: string | null) {
+  if (!dateString) return "";
+  const now = new Date();
+  const placed = new Date(dateString);
+  const diffMs = now.getTime() - placed.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 60) return `${diffSec} seconds ago`;
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin} minutes ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr} hours ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  return `${diffDay} days ago`;
+}
+
 export default function DashboardPage() {
   const { user, loading, handleSignOut } = useAuth();
   const router = useRouter();
   const [userState, setUserState] = useState<UserGameState | null>(null);
   const [btcPrice, setBtcPrice] = useState<number | null>(null);
-  const [countdown, setCountdown] = useState<number>(60);
-  const [timerActive, setTimerActive] = useState(false);
   const [result, setResult] = useState<"win" | "loss" | null>(null);
+  const [isResolving, setIsResolving] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -59,29 +73,11 @@ export default function DashboardPage() {
         priceAtGuess: btcPrice,
       }),
     });
-    setTimerActive(true);
-    setCountdown(60);
     setResult(null);
     setUserState((prev) =>
       prev ? { ...prev, activeGuess: direction, priceAtGuess: btcPrice } : null
     );
   };
-
-  useEffect(() => {
-    if (!timerActive) return;
-    const interval = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          resolveUserGuess();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timerActive]);
 
   const resolveUserGuess = async () => {
     if (!user?.username) return;
@@ -101,10 +97,29 @@ export default function DashboardPage() {
       setUserState(updatedUser);
     } catch (err) {
       console.error("Failed to resolve guess", err);
-    } finally {
-      setTimerActive(false);
     }
   };
+
+  useEffect(() => {
+    if (
+      !userState ||
+      !userState.activeGuess ||
+      !userState.guessPlacedAt ||
+      result ||
+      isResolving
+    )
+      return;
+    const interval = setInterval(() => {
+      const placed = new Date(userState.guessPlacedAt!);
+      const now = new Date();
+      const diffSec = (now.getTime() - placed.getTime()) / 1000;
+      if (diffSec >= 60) {
+        setIsResolving(true);
+        resolveUserGuess().finally(() => setIsResolving(false));
+      }
+    }, 10000); // check every 10 seconds
+    return () => clearInterval(interval);
+  }, [userState, result, isResolving]);
 
   if (!userState || btcPrice === null)
     return <div className={styles.loading}>Loading...</div>;
@@ -129,25 +144,28 @@ export default function DashboardPage() {
           : "Loading..."}
       </div>
       <div className={styles.score}>Your Score: {userState.score}</div>
-      {userState.activeGuess && timerActive && (
+      {userState.activeGuess && (
         <div className={styles.timer}>
-          ⏳ You guessed &quot;{userState.activeGuess}&quot; — resolving in{" "}
-          {countdown}s...
+          ⏳ You guessed &quot;{userState.activeGuess}&quot; :{" "}
+          {timeAgo(userState.guessPlacedAt)}
         </div>
       )}
-      {!userState.activeGuess && (
-        <div className={styles.guessButtons}>
-          <button onClick={() => handleGuess("up")} className={styles.guessUp}>
-            Guess Up 📈
-          </button>
-          <button
-            onClick={() => handleGuess("down")}
-            className={styles.guessDown}
-          >
-            Guess Down 📉
-          </button>
-        </div>
-      )}
+      <div className={styles.guessButtons}>
+        <button
+          onClick={() => handleGuess("up")}
+          className={styles.guessUp}
+          disabled={!!userState.activeGuess}
+        >
+          Guess Up 📈
+        </button>
+        <button
+          onClick={() => handleGuess("down")}
+          className={styles.guessDown}
+          disabled={!!userState.activeGuess}
+        >
+          Guess Down 📉
+        </button>
+      </div>
       {result && (
         <div
           className={result === "win" ? styles.resultWin : styles.resultLoss}
