@@ -24,7 +24,7 @@ export default function Home() {
   }, [user, loading, router]);
 
   const handleStart = async () => {
-    if (loading) return; // Wait for auth to resolve
+    if (loading) return;
     if (user) {
       setRedirecting(true);
       setTimeout(() => {
