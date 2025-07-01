@@ -3,7 +3,7 @@ import { useAuth } from "@/app/hooks/Auth";
 import { hasMessage } from "@/lib/guards";
 import { resendSignUpCode } from "aws-amplify/auth";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import styles from "../login.module.css";
 
 const ConfirmEmailPage = () => {
@@ -113,4 +113,10 @@ const ConfirmEmailPage = () => {
   );
 };
 
-export default ConfirmEmailPage;
+export default function Page() {
+  return (
+    <Suspense>
+      <ConfirmEmailPage />
+    </Suspense>
+  );
+}
