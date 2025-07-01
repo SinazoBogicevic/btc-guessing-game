@@ -117,9 +117,9 @@ export default function DashboardPage() {
         setIsResolving(true);
         resolveUserGuess().finally(() => setIsResolving(false));
       }
-    }, 10000); // check every 10 seconds
+    }, 10000);
     return () => clearInterval(interval);
-  }, [userState, result, isResolving]);
+  }, [userState, result, isResolving, resolveUserGuess]);
 
   if (!userState || btcPrice === null)
     return <div className={styles.loading}>Loading...</div>;
