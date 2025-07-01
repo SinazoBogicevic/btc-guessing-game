@@ -11,7 +11,7 @@ import {
   PutCommand,
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
-// @ts-expect-error no types available for aws-sdk-client-mock
+
 import { mockClient } from "aws-sdk-client-mock";
 import { getOrCreateUser, resolveGuess, saveGuess } from "../src/lib/dynamodb";
 import { UserGameState } from "../src/types";
