@@ -59,6 +59,8 @@ export function useAuth() {
         username: email,
         password,
       });
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
       return { success: true };
     } catch (error) {
       return { success: false, error };

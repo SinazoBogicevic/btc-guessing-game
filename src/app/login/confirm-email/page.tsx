@@ -4,12 +4,13 @@ import { hasMessage } from "@/lib/guards";
 import { resendSignUpCode } from "aws-amplify/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
+import styles from "../login.module.css";
 
 const ConfirmEmailPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
-  const { handleConfirmSignUp } = useAuth();
+  const { handleConfirmSignUp, handleSignIn } = useAuth();
 
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,8 +26,26 @@ const ConfirmEmailPage = () => {
     try {
       const result = await handleConfirmSignUp(email, code);
       if (result.success) {
-        setSuccess("Email confirmed! Redirecting to dashboard...");
-        setTimeout(() => router.push("/dashboard"), 1500);
+        setSuccess("Email confirmed! Logging you in...");
+
+        const password = sessionStorage.getItem("signupPassword");
+        if (password) {
+          const signInResult = await handleSignIn(email, password);
+          sessionStorage.removeItem("signupPassword");
+          if (signInResult.success) {
+            setSuccess("Email confirmed! Redirecting to dashboard...");
+            setTimeout(() => router.push("/dashboard"), 1200);
+          } else {
+            setSuccess("");
+            setError(
+              "Email confirmed, but failed to log in. Please log in manually."
+            );
+            setTimeout(() => router.push("/login"), 2000);
+          }
+        } else {
+          setSuccess("Email confirmed! Please log in.");
+          setTimeout(() => router.push("/login"), 1500);
+        }
       } else {
         setError(
           hasMessage(result.error)
@@ -56,29 +75,41 @@ const ConfirmEmailPage = () => {
   };
 
   return (
-    <div>
-      <h2>Confirm Your Email</h2>
-      <form onSubmit={handleConfirm}>
-        <label>
-          Verification Code
-          <input
-            type="text"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            required
-          />
-        </label>
-        <button type="submit" disabled={loading}>
-          {loading ? "Confirming..." : "Confirm Email"}
-        </button>
-      </form>
-      <button onClick={handleResend} disabled={loading}>
-        Resend Code
+    <main className={styles.main}>
+      <button
+        onClick={() => router.push("/login")}
+        className={styles.backButton}
+      >
+        ← Back
       </button>
-      {resent && <div>Code resent!</div>}
-      {error && <div>{error}</div>}
-      {success && <div>{success}</div>}
-    </div>
+      <div className={styles.centeredContent}>
+        <h2>Confirm Your Email</h2>
+        <form onSubmit={handleConfirm} className={styles.form}>
+          <label>
+            Verification Code
+            <input
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              required
+            />
+          </label>
+          <button type="submit" disabled={loading}>
+            {loading ? "Confirming..." : "Confirm Email"}
+          </button>
+        </form>
+        <button
+          onClick={handleResend}
+          disabled={loading}
+          className={styles.toggleButton}
+        >
+          Resend Code
+        </button>
+        {resent && <div className={styles.successMsg}>Code resent!</div>}
+        {error && <div className={styles.errorMsg}>{error}</div>}
+        {success && <div className={styles.successMsg}>{success}</div>}
+      </div>
+    </main>
   );
 };
 

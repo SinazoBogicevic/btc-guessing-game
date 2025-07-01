@@ -6,7 +6,7 @@ import { useAuth } from "../hooks/Auth";
 import styles from "./dashboard.module.css";
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, handleSignOut } = useAuth();
   const router = useRouter();
   const [userState, setUserState] = useState<UserGameState | null>(null);
   const [btcPrice, setBtcPrice] = useState<number | null>(null);
@@ -109,9 +109,19 @@ export default function DashboardPage() {
   if (!userState || btcPrice === null)
     return <div className={styles.loading}>Loading...</div>;
 
+  const handleLogout = async () => {
+    await handleSignOut();
+    router.replace("/login");
+  };
+
   return (
     <main className={styles.main}>
-      <h1 className={styles.title}>Welcome to the BTC Guessing Game</h1>
+      <div className={styles.headerRow}>
+        <h1 className={styles.title}>Welcome to the BTC Guessing Game</h1>
+        <button onClick={handleLogout} className={styles.logoutButton}>
+          Logout
+        </button>
+      </div>
       <div className={styles.price}>
         Current BTC Price:{" "}
         {typeof btcPrice === "number"

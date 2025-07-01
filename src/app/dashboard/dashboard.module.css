@@ -68,3 +68,11 @@
   color: #fff;
   font-size: 1.25rem;
 }
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.logoutButton {
+  margin-left: 16px;
+}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { hasMessage } from "../../lib/guards";
 import { useAuth } from "../hooks/Auth";
+import styles from "./login.module.css";
 
 export default function LoginPage() {
   const { handleSignIn, handleSignUp, user, loading } = useAuth();
@@ -17,6 +18,7 @@ export default function LoginPage() {
   } = useForm<FormData>();
 
   const [redirecting, setRedirecting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (!loading && user) {
@@ -39,6 +41,7 @@ export default function LoginPage() {
         console.error("Signup error:", res.error);
         setError(getErrorMessage(res.error) || "Signup failed");
       } else {
+        sessionStorage.setItem("signupPassword", data.password);
         router.push(
           `/login/confirm-email?email=${encodeURIComponent(data.email)}`
         );
@@ -53,18 +56,21 @@ export default function LoginPage() {
   };
 
   return (
-    <main className={"main"}>
+    <main className={styles.main}>
+      <button onClick={() => router.push("/")} className={styles.backButton}>
+        ← Back
+      </button>
       {redirecting ? (
-        <div className={"redirecting"}>
-          <div className={"redirectingRow"}>
-            <span className={"spinner"} />
+        <div className={styles.redirecting}>
+          <div className={styles.redirectingRow}>
+            <span className={styles.spinner} />
             <span>Redirecting to dashboard...</span>
           </div>
         </div>
       ) : (
-        <>
+        <div className={styles.centeredContent}>
           <h1>{isSignup ? "Sign Up" : "Login"}</h1>
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
             <div>
               <label>Email</label>
               <input type="email" {...register("email", { required: true })} />
@@ -72,22 +78,33 @@ export default function LoginPage() {
             </div>
             <div>
               <label>Password</label>
-              <input
-                type="password"
-                {...register("password", {
-                  required: "Password is required",
-                  minLength: {
-                    value: 8,
-                    message: "Password must be at least 8 characters long",
-                  },
-                  pattern: {
-                    value:
-                      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).+$/,
-                    message:
-                      "Password must contain uppercase, lowercase, number, and symbol",
-                  },
-                })}
-              />
+              <div className={styles.passwordWrapper}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  {...register("password", {
+                    required: "Password is required",
+                    minLength: {
+                      value: 8,
+                      message: "Password must be at least 8 characters long",
+                    },
+                    pattern: {
+                      value:
+                        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).+$/,
+                      message:
+                        "Password must contain uppercase, lowercase, number, and symbol",
+                    },
+                  })}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className={styles.showPasswordButton}
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
               {errors.password && (
                 <span>{errors.password.message as string}</span>
               )}
@@ -95,12 +112,15 @@ export default function LoginPage() {
             {error && <p>{error}</p>}
             <button type="submit">{isSignup ? "Sign Up" : "Login"}</button>
           </form>
-          <button onClick={() => setIsSignup((v) => !v)}>
+          <button
+            onClick={() => setIsSignup((v) => !v)}
+            className={styles.toggleButton}
+          >
             {isSignup
               ? "Already have an account? Login"
               : "No account? Sign Up"}
           </button>
-        </>
+        </div>
       )}
     </main>
   );
