@@ -14,11 +14,13 @@
   padding: 80px;
   gap: 64px;
   font-family: var(--font-geist-sans);
+  font-size: 1.2rem;
 }
 
 .main {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 32px;
   grid-row-start: 2;
 }
@@ -54,4 +56,27 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.titleLogo {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.bigOrangeButton {
+  background: #f7931a;
+  color: #fff;
+  padding: 1.25rem 2.5rem;
+  border: none;
+  border-radius: 999px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.bigOrangeButton:hover {
+  background: #c6760b;
 }

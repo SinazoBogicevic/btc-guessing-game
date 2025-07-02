@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "./hooks/Auth";
@@ -70,7 +71,18 @@ export default function Home() {
           </div>
         ) : (
           <>
-            <h1>BTC Guessing Game</h1>
+            <div>
+              <div className={styles.titleLogo}>
+                <Image
+                  src={"/bitcoin.svg"}
+                  alt={"Big B"}
+                  width={64}
+                  height={64}
+                />
+                <h1>Bitcoin</h1>
+              </div>
+              <h1>Guessing Game</h1>
+            </div>
 
             {error ? (
               <p className={styles.error}>{error}</p>
@@ -82,7 +94,9 @@ export default function Home() {
               </p>
             )}
 
-            <button onClick={handleStart}>Start Playing →</button>
+            <button className={styles.bigOrangeButton} onClick={handleStart}>
+              Start Playing →
+            </button>
           </>
         )}
       </main>
