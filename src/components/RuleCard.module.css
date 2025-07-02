@@ -1,0 +1,56 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.card {
+  background: #fff;
+  color: black;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  position: relative;
+}
+
+.title {
+  margin: 0;
+  margin-bottom: 8px;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.heading {
+  margin-bottom: 16px;
+}
+
+.list {
+  text-align: left;
+  margin-bottom: 24px;
+  padding-left: 20px;
+}
+
+.listItem {
+  margin-bottom: 8px;
+}
+
+.button {
+  background: #f7931a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 16px;
+}

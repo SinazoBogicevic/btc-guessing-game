@@ -1,4 +1,5 @@
 "use client";
+import RuleCard from "@/components/RuleCard";
 import { UserGameState } from "@/types";
 import { fetchAuthSession } from "aws-amplify/auth";
 import Image from "next/image";
@@ -15,6 +16,7 @@ export default function DashboardPage() {
   const [result, setResult] = useState<"win" | "loss" | null>(null);
   const [isResolving, setIsResolving] = useState(false);
   const [tipIndex, setTipIndex] = useState(0);
+  const [showRuleCard, setShowRuleCard] = useState(false);
 
   const tips = [
     "Guesses are resolved at least after 60s have passed.",
@@ -154,6 +156,23 @@ export default function DashboardPage() {
     }
   }, [userState, result, tips.length]);
 
+  useEffect(() => {
+    if (!userState) return;
+    const dismissed = localStorage.getItem("ruleCardDismissed");
+    const neverBet =
+      userState.score === 0 &&
+      userState.lastResult === null &&
+      userState.resolvedAt === null;
+    if (neverBet && !dismissed) {
+      setShowRuleCard(true);
+    }
+  }, [userState]);
+
+  const handleCloseRuleCard = () => {
+    setShowRuleCard(false);
+    localStorage.setItem("ruleCardDismissed", "1");
+  };
+
   if (!userState || btcPrice === null)
     return <div className={styles.loading}>Loading...</div>;
 
@@ -164,6 +183,7 @@ export default function DashboardPage() {
 
   return (
     <main className={styles.main}>
+      {showRuleCard && <RuleCard onClose={handleCloseRuleCard} />}
       <nav className={styles.navbar}>
         <div className={styles.navSection}></div>
         <div className={styles.titleLogo}>
