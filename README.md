@@ -1,5 +1,7 @@
 # BTC Guessing Game
 
+[Live Project](https://btc-guessing-game-blond.vercel.app/)
+
 A simple web app where users guess whether the price of Bitcoin (BTC) will go up or down. The guess is only resolved when the price changes and at least 60s have passed.
 
 ## Features
