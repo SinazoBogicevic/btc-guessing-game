@@ -43,9 +43,8 @@ export default function LoginPage() {
         setError(getErrorMessage(res.error) || "Signup failed");
       } else {
         sessionStorage.setItem("signupPassword", data.password);
-        router.push(
-          `/login/confirm-email?email=${encodeURIComponent(data.email)}`
-        );
+        sessionStorage.setItem("signupEmail", data.email);
+        router.push(`/login/confirm-email`);
       }
     } else {
       const res = await handleSignIn(data.email, data.password);
