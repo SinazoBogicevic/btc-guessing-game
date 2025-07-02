@@ -1,5 +1,6 @@
 "use client";
 import { UserGameState } from "@/types";
+import { fetchAuthSession } from "aws-amplify/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/Auth";
@@ -35,14 +36,24 @@ export default function DashboardPage() {
       return;
     }
     if (user.username) {
-      fetch(`/api/user?userId=${user.username}`)
-        .then((res) => res.json())
-        .then((data) => {
+      (async () => {
+        try {
+          const session = await fetchAuthSession();
+          const token = session.tokens?.idToken?.toString();
+          const res = await fetch(`/api/user?userId=${user.username}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+          if (!res.ok) {
+            const errorText = await res.text();
+            console.error("API Error:", errorText);
+            return;
+          }
+          const data = await res.json();
           setUserState(data);
-        })
-        .catch((err) => {
+        } catch (err) {
           console.error("Failed to ensure user in DB:", err);
-        });
+        }
+      })();
     }
   }, [user, loading, router]);
 
@@ -64,9 +75,14 @@ export default function DashboardPage() {
 
   const handleGuess = async (direction: "up" | "down") => {
     if (!user?.username || !btcPrice) return;
+    const session = await fetchAuthSession();
+    const token = session.tokens?.idToken?.toString();
     await fetch("/api/guess", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify({
         userId: user.username,
         guess: direction,
@@ -84,15 +100,22 @@ export default function DashboardPage() {
     await fetchBTC();
     if (!btcPrice) return;
     try {
+      const session = await fetchAuthSession();
+      const token = session.tokens?.idToken?.toString();
       const res = await fetch("/api/resolve", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ userId: user.username, currentPrice: btcPrice }),
       });
       const { result } = await res.json();
       setResult(result);
 
-      const updated = await fetch(`/api/user?userId=${user.username}`);
+      const updated = await fetch(`/api/user?userId=${user.username}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       const updatedUser = await updated.json();
       setUserState(updatedUser);
     } catch (err) {
