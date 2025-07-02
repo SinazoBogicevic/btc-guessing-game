@@ -72,6 +72,9 @@ describe("useAuth", () => {
 
   it("should return success on successful signIn", async () => {
     (AmplifyAuth.signIn as jest.Mock).mockResolvedValue({});
+    (AmplifyAuth.getCurrentUser as jest.Mock).mockResolvedValue({
+      username: "testuser",
+    });
     const { result } = renderHook(() => useAuth());
     const res = await result.current.handleSignIn(
       "test@example.com",
