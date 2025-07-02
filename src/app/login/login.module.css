@@ -31,7 +31,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: 350px;
+  max-width: 400px;
   background: #fff;
   padding: 2.5rem 2rem 2rem 2rem;
   border-radius: 12px;
@@ -51,11 +51,12 @@
 }
 
 .form input {
-  padding: 0.6rem 0.8rem;
+  padding: 1rem 1.2rem;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
-  font-size: 1rem;
+  font-size: 1.2rem;
   margin-top: 0.2rem;
+  width: 100%;
 }
 
 .form button[type="submit"] {
@@ -72,6 +73,26 @@
 }
 .form button[type="submit"]:hover {
   background: #1d4ed8;
+}
+
+.form button[type="submit"]:disabled {
+  background: #cbd5e1;
+  color: #888;
+  cursor: not-allowed;
+  opacity: 0.7;
+  position: relative;
+}
+
+.buttonSpinner {
+  width: 1.2em;
+  height: 1.2em;
+  border: 2px solid #fff;
+  border-top: 2px solid #888;
+  border-radius: 50%;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.5em;
+  animation: spin 1s linear infinite;
 }
 
 .toggleButton {
@@ -164,4 +185,10 @@
   margin-top: 1rem;
   font-size: 1rem;
   text-align: center;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }

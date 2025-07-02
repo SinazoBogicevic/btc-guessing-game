@@ -10,6 +10,7 @@ export default function LoginPage() {
   const { handleSignIn, handleSignUp, user, loading } = useAuth();
   const [isSignup, setIsSignup] = useState(false);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
   const {
     register,
@@ -32,7 +33,7 @@ export default function LoginPage() {
   type FormData = { email: string; password: string };
   const onSubmit = async (data: FormData) => {
     setError("");
-
+    setSubmitting(true);
     const getErrorMessage = (err: unknown) =>
       hasMessage(err) ? err.message : undefined;
     if (isSignup) {
@@ -53,6 +54,7 @@ export default function LoginPage() {
         setError(getErrorMessage(res.error) || "Login failed");
       }
     }
+    setSubmitting(false);
   };
 
   return (
@@ -71,7 +73,7 @@ export default function LoginPage() {
         <div className={styles.centeredContent}>
           <h1>{isSignup ? "Sign Up" : "Login"}</h1>
           <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
-            <div>
+            <div className={styles.formField}>
               <label>Email</label>
               <input type="email" {...register("email", { required: true })} />
               {errors.email && <span>Email is required</span>}
@@ -110,7 +112,10 @@ export default function LoginPage() {
               )}
             </div>
             {error && <p>{error}</p>}
-            <button type="submit">{isSignup ? "Sign Up" : "Login"}</button>
+            <button type="submit" disabled={submitting}>
+              {submitting && <span className={styles.buttonSpinner} />}
+              {isSignup ? "Sign Up" : "Login"}
+            </button>
           </form>
           <button
             onClick={() => setIsSignup((v) => !v)}
