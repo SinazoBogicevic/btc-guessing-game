@@ -18,6 +18,7 @@ export default function DashboardPage() {
   const [tipIndex, setTipIndex] = useState(0);
   const [showRuleCard, setShowRuleCard] = useState(false);
   const [showResultPopup, setShowResultPopup] = useState(false);
+  const [elapsed, setElapsed] = useState<number>(0);
 
   const tips = [
     "Guesses are resolved at least after 60s have passed.",
@@ -76,7 +77,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchBTC();
-    const interval = setInterval(fetchBTC, 40000);
+    const interval = setInterval(fetchBTC, 10000);
     return () => clearInterval(interval);
   }, [fetchBTC]);
 
@@ -98,7 +99,14 @@ export default function DashboardPage() {
     });
     setResult(null);
     setUserState((prev) =>
-      prev ? { ...prev, activeGuess: direction, priceAtGuess: btcPrice } : null
+      prev
+        ? {
+            ...prev,
+            activeGuess: direction,
+            priceAtGuess: btcPrice,
+            guessPlacedAt: new Date().toISOString(),
+          }
+        : null
     );
   };
 
@@ -152,7 +160,7 @@ export default function DashboardPage() {
         setIsResolving(true);
         resolveUserGuess().finally(() => setIsResolving(false));
       }
-    }, 10000);
+    }, 1000);
     return () => clearInterval(interval);
   }, [userState, result, isResolving, resolveUserGuess, btcPrice]);
 
@@ -195,6 +203,22 @@ export default function DashboardPage() {
       return () => clearTimeout(timer);
     }
   }, [result, userState?.resolvedAt]);
+
+  useEffect(() => {
+    if (userState?.activeGuess && userState.guessPlacedAt && !result) {
+      const updateElapsed = () => {
+        const placed = new Date(userState.guessPlacedAt!);
+        const now = new Date();
+        const diff = Math.floor((now.getTime() - placed.getTime()) / 1000);
+        setElapsed(diff);
+      };
+      updateElapsed();
+      const interval = setInterval(updateElapsed, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setElapsed(0);
+    }
+  }, [userState?.activeGuess, userState?.guessPlacedAt, result]);
 
   if (!userState || btcPrice === null)
     return (
@@ -245,6 +269,7 @@ export default function DashboardPage() {
       </div>
       {userState.activeGuess && !result && (
         <>
+          <div className={styles.timer}>Time elapsed: {elapsed}s</div>
           <p className={styles.animatedTip}>{tips[tipIndex]}</p>
           <div className={styles.guessSummary}>
             You guessed: {userState.activeGuess === "up" ? "Up ↑" : "Down ↓"}
