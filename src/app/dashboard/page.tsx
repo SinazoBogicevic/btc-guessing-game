@@ -47,8 +47,16 @@ export default function DashboardPage() {
             console.error("API Error:", errorText);
             return;
           }
-          const data = await res.json();
+          const data: UserGameState = await res.json();
           setUserState(data);
+
+          if (data.lastResult && !data.activeGuess) {
+            const lastSeenResolvedAt =
+              localStorage.getItem("lastSeenResolvedAt");
+            if (data.resolvedAt && data.resolvedAt !== lastSeenResolvedAt) {
+              setResult(data.lastResult);
+            }
+          }
         } catch (err) {
           console.error("Failed to ensure user in DB:", err);
         }
@@ -178,13 +186,15 @@ export default function DashboardPage() {
   useEffect(() => {
     if (result) {
       setShowResultPopup(true);
+      if (userState?.resolvedAt) {
+        localStorage.setItem("lastSeenResolvedAt", userState.resolvedAt);
+      }
       const timer = setTimeout(() => {
         setShowResultPopup(false);
-        setResult(null);
-      }, 1000);
+      }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [result]);
+  }, [result, userState?.resolvedAt]);
 
   if (!userState || btcPrice === null)
     return (
