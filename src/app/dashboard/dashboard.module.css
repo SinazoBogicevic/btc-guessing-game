@@ -1,11 +1,14 @@
 .main {
-  min-height: 100vh;
-  background: #000;
-  color: #fff;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  min-height: 100vh;
+  min-width: 100vw;
+  width: 100vw;
+  height: 100vh;
+  background: #222531;
+  color: #fff;
   gap: 1.5rem;
   padding: 1rem;
 }
@@ -14,7 +17,10 @@
   font-weight: bold;
 }
 .price {
-  font-size: 1.5rem;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-top: 4.5rem;
+  margin-bottom: 4.5rem;
 }
 .score {
   font-size: 1.25rem;
@@ -70,9 +76,106 @@
 }
 .headerRow {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  position: relative;
 }
 .logoutButton {
-  margin-left: 16px;
+  background: #1e293b;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background 0.2s, color 0.2s;
+}
+.logoutButton:hover {
+  background: #334155;
+  color: #fde047;
+}
+.logoutContainer {
+  display: none;
+}
+.navbar {
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  background: #fff;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.navSection {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.navSection:last-child {
+  justify-content: flex-end;
+}
+.titleLogo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: none;
+}
+.navTitle {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1e293b;
+}
+.scoreCard {
+  background: #f3f4f6;
+  border-radius: 1rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  padding: 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  min-width: 220px;
+  color: #1e293b;
+}
+.scoreLabel {
+  font-size: 1.1rem;
+  color: #1e293b;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.scoreValue {
+  font-size: 2.2rem;
+  color: #1e293b;
+  font-weight: bold;
+  line-height: 1.1;
+}
+
+@keyframes fadeInOut {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  10%,
+  90% {
+    opacity: 1;
+  }
+}
+
+.animatedTip {
+  font-size: 0.95rem;
+  color: #888;
+  font-style: italic;
+  text-align: center;
+  margin: 1.5rem 0 0.5rem 0;
+  transition: opacity 0.5s;
+  animation: fadeInOut 4s ease-in-out infinite;
 }

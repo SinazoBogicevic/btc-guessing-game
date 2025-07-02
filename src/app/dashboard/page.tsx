@@ -1,25 +1,11 @@
 "use client";
 import { UserGameState } from "@/types";
 import { fetchAuthSession } from "aws-amplify/auth";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../hooks/Auth";
 import styles from "./dashboard.module.css";
-
-function timeAgo(dateString: string | null) {
-  if (!dateString) return "";
-  const now = new Date();
-  const placed = new Date(dateString);
-  const diffMs = now.getTime() - placed.getTime();
-  const diffSec = Math.floor(diffMs / 1000);
-  if (diffSec < 60) return `${diffSec} seconds ago`;
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin} minutes ago`;
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr} hours ago`;
-  const diffDay = Math.floor(diffHr / 24);
-  return `${diffDay} days ago`;
-}
 
 export default function DashboardPage() {
   const { user, loading, handleSignOut } = useAuth();
@@ -28,6 +14,15 @@ export default function DashboardPage() {
   const [btcPrice, setBtcPrice] = useState<number | null>(null);
   const [result, setResult] = useState<"win" | "loss" | null>(null);
   const [isResolving, setIsResolving] = useState(false);
+  const [tipIndex, setTipIndex] = useState(0);
+
+  const tips = [
+    "Guesses are resolved at least after 60s have passed.",
+    "The BTC price must change before your guess can be resolved.",
+    "If you're right, you gain 1 point. If you're wrong, you lose 1.",
+    "You can only make one guess at a time.",
+    "The game auto-resolves once conditions are met!",
+  ];
 
   useEffect(() => {
     if (loading) return;
@@ -57,7 +52,7 @@ export default function DashboardPage() {
     }
   }, [user, loading, router]);
 
-  const fetchBTC = async () => {
+  const fetchBTC = useCallback(async () => {
     try {
       const res = await fetch("/api/btc-price");
       const { price } = await res.json();
@@ -65,13 +60,13 @@ export default function DashboardPage() {
     } catch (err) {
       console.error("Failed to fetch BTC price", err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchBTC();
     const interval = setInterval(fetchBTC, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchBTC]);
 
   const handleGuess = async (direction: "up" | "down") => {
     if (!user?.username || !btcPrice) return;
@@ -95,7 +90,7 @@ export default function DashboardPage() {
     );
   };
 
-  const resolveUserGuess = async () => {
+  const resolveUserGuess = useCallback(async () => {
     if (!user?.username) return;
     await fetchBTC();
     if (!btcPrice) return;
@@ -121,7 +116,7 @@ export default function DashboardPage() {
     } catch (err) {
       console.error("Failed to resolve guess", err);
     }
-  };
+  }, [user, btcPrice, fetchBTC]);
 
   useEffect(() => {
     if (
@@ -136,13 +131,28 @@ export default function DashboardPage() {
       const placed = new Date(userState.guessPlacedAt!);
       const now = new Date();
       const diffSec = (now.getTime() - placed.getTime()) / 1000;
-      if (diffSec >= 60) {
+      if (
+        diffSec >= 60 &&
+        btcPrice !== null &&
+        userState.priceAtGuess !== undefined &&
+        btcPrice !== userState.priceAtGuess
+      ) {
         setIsResolving(true);
         resolveUserGuess().finally(() => setIsResolving(false));
       }
     }, 10000);
     return () => clearInterval(interval);
-  }, [userState, result, isResolving, resolveUserGuess]);
+  }, [userState, result, isResolving, resolveUserGuess, btcPrice]);
+
+  useEffect(() => {
+    if (userState && userState.activeGuess && !result) {
+      setTipIndex(0);
+      const interval = setInterval(() => {
+        setTipIndex((prev) => (prev + 1) % tips.length);
+      }, 4000);
+      return () => clearInterval(interval);
+    }
+  }, [userState, result, tips.length]);
 
   if (!userState || btcPrice === null)
     return <div className={styles.loading}>Loading...</div>;
@@ -154,24 +164,30 @@ export default function DashboardPage() {
 
   return (
     <main className={styles.main}>
-      <div className={styles.headerRow}>
-        <h1 className={styles.title}>Welcome to the BTC Guessing Game</h1>
-        <button onClick={handleLogout} className={styles.logoutButton}>
-          Logout
-        </button>
-      </div>
+      <nav className={styles.navbar}>
+        <div className={styles.navSection}></div>
+        <div className={styles.titleLogo}>
+          <Image src={"/bitcoin.svg"} alt={"Big B"} width={32} height={32} />
+          <span className={styles.navTitle}>Bitcoin Guessing Game</span>
+        </div>
+        <div className={styles.navSection}>
+          <button onClick={handleLogout} className={styles.logoutButton}>
+            Logout
+          </button>
+        </div>
+      </nav>
       <div className={styles.price}>
-        Current BTC Price:{" "}
+        Current Price:{" "}
         {typeof btcPrice === "number"
           ? `$${btcPrice.toFixed(2)}`
           : "Loading..."}
       </div>
-      <div className={styles.score}>Your Score: {userState.score}</div>
-      {userState.activeGuess && (
-        <div className={styles.timer}>
-          ⏳ You guessed &quot;{userState.activeGuess}&quot; :{" "}
-          {timeAgo(userState.guessPlacedAt)}
-        </div>
+      <div className={styles.scoreCard}>
+        <div className={styles.scoreLabel}>Your Score</div>
+        <div className={styles.scoreValue}>{userState.score}</div>
+      </div>
+      {userState.activeGuess && !result && (
+        <p className={styles.animatedTip}>{tips[tipIndex]}</p>
       )}
       <div className={styles.guessButtons}>
         <button
@@ -179,14 +195,14 @@ export default function DashboardPage() {
           className={styles.guessUp}
           disabled={!!userState.activeGuess}
         >
-          Guess Up 📈
+          Guess Up ↑
         </button>
         <button
           onClick={() => handleGuess("down")}
           className={styles.guessDown}
           disabled={!!userState.activeGuess}
         >
-          Guess Down 📉
+          Guess Down ↓
         </button>
       </div>
       {result && (
