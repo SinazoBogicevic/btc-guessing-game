@@ -22,7 +22,6 @@ describe("POST /api/guess", () => {
         priceAtGuess: 65000,
       }),
     });
-    // Patch req.json to return the parsed body
     req.json = async () => ({
       userId: "testuser123",
       guess: "up",
