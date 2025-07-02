@@ -17,6 +17,7 @@ export default function DashboardPage() {
   const [isResolving, setIsResolving] = useState(false);
   const [tipIndex, setTipIndex] = useState(0);
   const [showRuleCard, setShowRuleCard] = useState(false);
+  const [showResultPopup, setShowResultPopup] = useState(false);
 
   const tips = [
     "Guesses are resolved at least after 60s have passed.",
@@ -24,6 +25,7 @@ export default function DashboardPage() {
     "If you're right, you gain 1 point. If you're wrong, you lose 1.",
     "You can only make one guess at a time.",
     "The game auto-resolves once conditions are met!",
+    "The games not broken, you're just waiting!",
   ];
 
   useEffect(() => {
@@ -66,7 +68,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchBTC();
-    const interval = setInterval(fetchBTC, 60000);
+    const interval = setInterval(fetchBTC, 40000);
     return () => clearInterval(interval);
   }, [fetchBTC]);
 
@@ -173,8 +175,24 @@ export default function DashboardPage() {
     localStorage.setItem("ruleCardDismissed", "1");
   };
 
+  useEffect(() => {
+    if (result) {
+      setShowResultPopup(true);
+      const timer = setTimeout(() => {
+        setShowResultPopup(false);
+        setResult(null);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [result]);
+
   if (!userState || btcPrice === null)
-    return <div className={styles.loading}>Loading...</div>;
+    return (
+      <div className={styles.spinnerWrapper}>
+        <div className={styles.spinnerTitle}>Setting up game</div>
+        <div className={styles.spinner}></div>
+      </div>
+    );
 
   const handleLogout = async () => {
     await handleSignOut();
@@ -196,6 +214,15 @@ export default function DashboardPage() {
           </button>
         </div>
       </nav>
+      {showResultPopup && (
+        <div
+          className={
+            result === "win" ? styles.resultPopupWin : styles.resultPopupLoss
+          }
+        >
+          You {result === "win" ? "won!" : "lost."}
+        </div>
+      )}
       <div className={styles.price}>
         Current Price:{" "}
         {typeof btcPrice === "number"
@@ -207,31 +234,31 @@ export default function DashboardPage() {
         <div className={styles.scoreValue}>{userState.score}</div>
       </div>
       {userState.activeGuess && !result && (
-        <p className={styles.animatedTip}>{tips[tipIndex]}</p>
+        <>
+          <p className={styles.animatedTip}>{tips[tipIndex]}</p>
+          <div className={styles.guessSummary}>
+            You guessed: {userState.activeGuess === "up" ? "Up ↑" : "Down ↓"}
+          </div>
+        </>
       )}
-      <div className={styles.guessButtons}>
-        <button
-          onClick={() => handleGuess("up")}
-          className={styles.guessUp}
-          disabled={!!userState.activeGuess}
-        >
-          Guess Up ↑
-        </button>
-        <button
-          onClick={() => handleGuess("down")}
-          className={styles.guessDown}
-          disabled={!!userState.activeGuess}
-        >
-          Guess Down ↓
-        </button>
-      </div>
-      {result && (
-        <div
-          className={result === "win" ? styles.resultWin : styles.resultLoss}
-        >
-          You {result === "win" ? "won!" : "lost."}
+      {!userState.activeGuess || result ? (
+        <div className={styles.guessButtons}>
+          <button
+            onClick={() => handleGuess("up")}
+            className={styles.guessUp}
+            disabled={!!userState.activeGuess}
+          >
+            Guess Up ↑
+          </button>
+          <button
+            onClick={() => handleGuess("down")}
+            className={styles.guessDown}
+            disabled={!!userState.activeGuess}
+          >
+            Guess Down ↓
+          </button>
         </div>
-      )}
+      ) : null}
     </main>
   );
 }
